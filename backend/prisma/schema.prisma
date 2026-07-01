@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+}
+
+model User {
+  id          String      @id @default(uuid())
+  studentId   String      @unique
+  name        String
+  email       String?     @unique
+  course      String?
+  photo       String?
+  sex         String?
+  password    String
+  isVerified  Boolean     @default(false)
+  trustScore  Int         @default(100)
+  role        String      @default("USER")
+  createdAt   DateTime    @default(now())
+  
+  lostItems   LostItem[]
+  foundItems  FoundItem[]
+  claims      Claim[]
+  trustLogs   TrustLog[]
+}
+
+model LostItem {
+  id           String      @id @default(uuid())
+  ownerId      String
+  owner        User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  description  String
+  category     String
+  locationLost String
+  dateLost     DateTime
+  imageUrl     String?
+  status       String      @default("LOST") // LOST, MATCHED, CLAIMED, RETURNED
+  fingerprint  String?
+  createdAt    DateTime    @default(now())
+  
+  matches      Match[]
+}
+
+model FoundItem {
+  id              String      @id @default(uuid())
+  finderId        String
+  finder          User        @relation(fields: [finderId], references: [id], onDelete: Cascade)
+  title           String
+  description     String
+  category        String
+  locationFound   String
+  dateFound       DateTime
+  imageUrl        String?
+  status          String      @default("FOUND") // FOUND, MATCHED, CLAIMED, RETURNED
+  fingerprint     String?
+  secretQuestions Json?       // Stores finder's secret questions and answers
+  createdAt       DateTime    @default(now())
+  
+  matches         Match[]
+}
+
+model Match {
+  id          String     @id @default(uuid())
+  lostItemId  String
+  lostItem    LostItem   @relation(fields: [lostItemId], references: [id], onDelete: Cascade)
+  foundItemId String
+  foundItem   FoundItem  @relation(fields: [foundItemId], references: [id], onDelete: Cascade)
+  score       Int
+  status      String     @default("PENDING") // PENDING, VERIFIED, RESOLVED, REJECTED
+  createdAt   DateTime   @default(now())
+  
+  claims      Claim[]
+}
+
+model Claim {
+  id                String   @id @default(uuid())
+  matchId           String
+  match             Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  claimantId        String
+  claimant          User     @relation(fields: [claimantId], references: [id], onDelete: Cascade)
+  verificationScore Int      @default(0)
+  answers           Json     // Stores questions and claimant's answers
+  status            String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt         DateTime @default(now())
+}
+
+model TrustLog {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scoreChange Int
+  reason      String
+  createdAt   DateTime @default(now())
+}
