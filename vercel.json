@@ -1,16 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "backend/package.json",
-      "use": "@vercel/node",
-      "config": { "entrypoint": "src/main.ts" }
+  "services": {
+    "backend": {
+      "root": "backend",
+      "entrypoint": "src/main.ts"
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "backend/src/main.ts"
-    }
-  ]
+  }
 }
