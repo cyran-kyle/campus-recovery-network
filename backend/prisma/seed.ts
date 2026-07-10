@@ -12,15 +12,13 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('Clearing database logs/claims...');
-  await prisma.trustLog.deleteMany({});
-  await prisma.claim.deleteMany({});
-  await prisma.match.deleteMany({});
-  await prisma.lostItem.deleteMany({});
-  await prisma.foundItem.deleteMany({});
-  await prisma.user.deleteMany({});
+  const userCount = await prisma.user.count();
+  if (userCount > 0) {
+    console.log('Database already contains users. Skipping seeding to preserve existing data.');
+    return;
+  }
 
-  console.log('Seeding admin user Kyle...');
+  console.log('Database is empty. Seeding admin user Kyle...');
   await prisma.user.create({
     data: {
       studentId: 'Kyle',

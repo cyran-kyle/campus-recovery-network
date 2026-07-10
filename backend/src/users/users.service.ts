@@ -42,8 +42,13 @@ export class UsersService {
     photo: string;
     password: string;
   }) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { studentId: data.studentId },
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        studentId: {
+          equals: data.studentId,
+          mode: 'insensitive',
+        },
+      },
     });
     if (existingUser) {
       throw new BadRequestException(`User with ID number ${data.studentId} already exists`);
@@ -76,8 +81,13 @@ export class UsersService {
   }
 
   async login(studentId: string, password: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { studentId },
+    const user = await this.prisma.user.findFirst({
+      where: {
+        studentId: {
+          equals: studentId,
+          mode: 'insensitive',
+        },
+      },
     });
 
     if (!user || user.password !== password) {

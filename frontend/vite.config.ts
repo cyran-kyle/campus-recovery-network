@@ -7,5 +7,9 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     allowedHosts: ['.ngrok-free.app', '.ngrok.io', 'localhost'],
+    host: true,
+    watch: {
+      usePolling: true,
+    },
   },
 })

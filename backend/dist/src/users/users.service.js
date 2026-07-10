@@ -45,8 +45,13 @@ let UsersService = class UsersService {
         return user;
     }
     async register(data) {
-        const existingUser = await this.prisma.user.findUnique({
-            where: { studentId: data.studentId },
+        const existingUser = await this.prisma.user.findFirst({
+            where: {
+                studentId: {
+                    equals: data.studentId,
+                    mode: 'insensitive',
+                },
+            },
         });
         if (existingUser) {
             throw new common_1.BadRequestException(`User with ID number ${data.studentId} already exists`);
@@ -74,8 +79,13 @@ let UsersService = class UsersService {
         return this.findOne(user.id);
     }
     async login(studentId, password) {
-        const user = await this.prisma.user.findUnique({
-            where: { studentId },
+        const user = await this.prisma.user.findFirst({
+            where: {
+                studentId: {
+                    equals: studentId,
+                    mode: 'insensitive',
+                },
+            },
         });
         if (!user || user.password !== password) {
             throw new common_1.UnauthorizedException('Invalid ID number or password');

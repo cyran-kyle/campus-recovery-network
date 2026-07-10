@@ -245,7 +245,18 @@ export default function App() {
     return localStorage.getItem('trustnet_api_url') || 'http://localhost:3000';
   });
   const [showServerSettings, setShowServerSettings] = useState(false);
-  const API_URL = apiUrl;
+  const API_URL = apiUrl.replace(/\/+$/, '');
+
+  // Custom fetch wrapper to bypass ngrok's browser warning page
+  const apiFetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+    headers.set('ngrok-skip-browser-warning', 'true');
+    return fetch(input, {
+      ...init,
+      headers,
+    });
+  };
+
   const [backendActive, setBackendActive] = useState<boolean | null>(null);
 
   // Auth States
@@ -300,6 +311,11 @@ export default function App() {
   const [quizStatus, setQuizStatus] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | null>(null);
   const [activeNotification, setActiveNotification] = useState<string | null>(null);
 
+  // Dashboard Active Reports Filters State
+  const [dashboardSearch, setDashboardSearch] = useState('');
+  const [dashboardFilterType, setDashboardFilterType] = useState<'all' | 'lost' | 'found'>('all');
+  const [dashboardFilterCategory, setDashboardFilterCategory] = useState('All');
+
   // Forms
   const [lostForm, setLostForm] = useState({
     title: '',
@@ -336,9 +352,11 @@ export default function App() {
   // 5. DATA SYNC & API SERVICES
   // ==========================================
 
-  const loadData = async (userToLoad = currentUser) => {
+  const loadData = async (userToLoad = currentUser, urlOverride?: string) => {
+    const rawUrl = urlOverride || API_URL;
+    const fetchUrl = rawUrl.replace(/\/+$/, '');
     try {
-      const healthRes = await fetch(`${API_URL}/users`);
+      const healthRes = await apiFetch(`${fetchUrl}/users`);
       if (healthRes.ok) {
         setBackendActive(true);
         const backendUsers = await healthRes.json();
@@ -353,20 +371,20 @@ export default function App() {
         }
 
         // Fetch Items
-        const lostRes = await fetch(`${API_URL}/items/lost`);
-        const foundRes = await fetch(`${API_URL}/items/found`);
+        const lostRes = await apiFetch(`${fetchUrl}/items/lost`);
+        const foundRes = await apiFetch(`${fetchUrl}/items/found`);
         const fetchedLost = lostRes.ok ? await lostRes.json() : [];
         const fetchedFound = foundRes.ok ? await foundRes.json() : [];
         setLostItems(fetchedLost);
         setFoundItems(fetchedFound);
 
         // Fetch Matches
-        const matchesRes = await fetch(`${API_URL}/matches`);
+        const matchesRes = await apiFetch(`${fetchUrl}/matches`);
         const fetchedMatches = matchesRes.ok ? await matchesRes.json() : [];
         setMatches(fetchedMatches);
 
         // Fetch Claims
-        const claimsRes = await fetch(`${API_URL}/claims`);
+        const claimsRes = await apiFetch(`${fetchUrl}/claims`);
         const fetchedClaims = claimsRes.ok ? await claimsRes.json() : [];
         setClaims(fetchedClaims);
 
@@ -386,6 +404,7 @@ export default function App() {
           recoveryRate: recRate,
           avgRecoveryHours: 4.5,
         });
+        return true;
       } else {
         throw new Error('Connection failed');
       }
@@ -393,6 +412,7 @@ export default function App() {
       console.log('Backend offline. Using simulated local engine.');
       setBackendActive(false);
       calculateLocalState(userToLoad);
+      return false;
     }
   };
 
@@ -467,10 +487,10 @@ export default function App() {
     if (!currentUser || currentUser.role !== 'ADMIN') return;
     if (backendActive) {
       try {
-        const usersRes = await fetch(`${API_URL}/users`);
-        const claimsRes = await fetch(`${API_URL}/claims`);
-        const lostRes = await fetch(`${API_URL}/items/lost`);
-        const foundRes = await fetch(`${API_URL}/items/found`);
+        const usersRes = await apiFetch(`${API_URL}/users`);
+        const claimsRes = await apiFetch(`${API_URL}/claims`);
+        const lostRes = await apiFetch(`${API_URL}/items/lost`);
+        const foundRes = await apiFetch(`${API_URL}/items/found`);
         if (usersRes.ok) setAdminUsersList(await usersRes.json());
         if (claimsRes.ok) setAdminClaimsList(await claimsRes.json());
         if (lostRes.ok) setAdminLostList(await lostRes.json());
@@ -526,7 +546,7 @@ export default function App() {
 
     if (backendActive) {
       try {
-        const res = await fetch(`${API_URL}/users/login`, {
+        const res = await apiFetch(`${API_URL}/users/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(loginForm),
@@ -577,7 +597,7 @@ export default function App() {
 
     if (backendActive) {
       try {
-        const res = await fetch(`${API_URL}/users/register`, {
+        const res = await apiFetch(`${API_URL}/users/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(registerForm),
@@ -657,7 +677,7 @@ export default function App() {
 
     if (backendActive) {
       try {
-        const res = await fetch(`${API_URL}/items/lost/${currentUser.id}`, {
+        const res = await apiFetch(`${API_URL}/items/lost/${currentUser.id}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -744,7 +764,7 @@ export default function App() {
 
     if (backendActive) {
       try {
-        const res = await fetch(`${API_URL}/items/found/${currentUser.id}`, {
+        const res = await apiFetch(`${API_URL}/items/found/${currentUser.id}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -822,7 +842,7 @@ export default function App() {
 
     if (backendActive) {
       try {
-        const res = await fetch(`${API_URL}/claims/${currentUser.id}`, {
+        const res = await apiFetch(`${API_URL}/claims/${currentUser.id}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -921,7 +941,7 @@ export default function App() {
   const handleVerifyUser = async (userId: string) => {
     if (backendActive) {
       try {
-        const res = await fetch(`${API_URL}/users/${userId}/verify`, { method: 'POST' });
+        const res = await apiFetch(`${API_URL}/users/${userId}/verify`, { method: 'POST' });
         if (res.ok) {
           loadAdminData();
           loadData();
@@ -942,7 +962,7 @@ export default function App() {
     if (!confirm('Are you sure you want to deny and delete this user?')) return;
     if (backendActive) {
       try {
-        const res = await fetch(`${API_URL}/users/${userId}`, { method: 'DELETE' });
+        const res = await apiFetch(`${API_URL}/users/${userId}`, { method: 'DELETE' });
         if (res.ok) {
           loadAdminData();
           loadData();
@@ -963,7 +983,7 @@ export default function App() {
     if (!confirm(`Are you sure you want to delete this ${type} item report?`)) return;
     if (backendActive) {
       try {
-        const res = await fetch(`${API_URL}/items/${type}/${id}`, { method: 'DELETE' });
+        const res = await apiFetch(`${API_URL}/items/${type}/${id}`, { method: 'DELETE' });
         if (res.ok) {
           loadAdminData();
           loadData();
@@ -985,7 +1005,7 @@ export default function App() {
     if (!confirm('Are you sure you want to delete this claim?')) return;
     if (backendActive) {
       try {
-        const res = await fetch(`${API_URL}/claims/${claimId}`, { method: 'DELETE' });
+        const res = await apiFetch(`${API_URL}/claims/${claimId}`, { method: 'DELETE' });
         if (res.ok) {
           loadAdminData();
           loadData();
@@ -1014,6 +1034,96 @@ export default function App() {
   // Verification checks
   const isPendingVerification = currentUser && currentUser.role !== 'ADMIN' && !currentUser.isVerified;
 
+  // Merge and filter active reports (status is not RETURNED)
+  const getFilteredReports = () => {
+    const normalizedLost = lostItems
+      .filter(item => item.status !== 'RETURNED')
+      .map(item => ({
+        ...item,
+        type: 'lost' as const,
+        location: item.locationLost,
+        date: item.dateLost,
+      }));
+
+    const normalizedFound = foundItems
+      .filter(item => item.status !== 'RETURNED')
+      .map(item => ({
+        ...item,
+        type: 'found' as const,
+        location: item.locationFound,
+        date: item.dateFound,
+      }));
+
+    let combined = [...normalizedLost, ...normalizedFound];
+
+    // Search query filter
+    if (dashboardSearch.trim()) {
+      const query = dashboardSearch.toLowerCase();
+      combined = combined.filter(
+        item =>
+          item.title.toLowerCase().includes(query) ||
+          item.description.toLowerCase().includes(query)
+      );
+    }
+
+    // Type filter
+    if (dashboardFilterType !== 'all') {
+      combined = combined.filter(item => item.type === dashboardFilterType);
+    }
+
+    // Category filter
+    if (dashboardFilterCategory !== 'All') {
+      combined = combined.filter(
+        item => item.category.toLowerCase() === dashboardFilterCategory.toLowerCase()
+      );
+    }
+
+    // Sort by createdAt descending
+    return combined.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  };
+
+  const filteredReports = getFilteredReports();
+
+  const handleClaimItemClick = (item: any) => {
+    const foundMatch = matches.find(m => m.foundItemId === item.id && m.lostItem.ownerId === currentUser?.id);
+    if (foundMatch) {
+      setSelectedMatch(foundMatch);
+      setQuizAnswers({});
+      setQuizSubmitted(false);
+      setQuizResultScore(null);
+      setQuizStatus(null);
+      setActiveTab('active-matches');
+      setActiveNotification('Match detected! Opening ownership verification quiz.');
+      setTimeout(() => setActiveNotification(null), 4000);
+    } else {
+      setLostForm(prev => ({
+        ...prev,
+        category: item.category,
+        locationLost: item.location,
+        title: `Lost ${item.title}`,
+        description: `Matching details for reported found item: ${item.description}`,
+      }));
+      setActiveTab('report-lost');
+      setActiveNotification('No active match found. Prefilling details to report your lost item.');
+      setTimeout(() => setActiveNotification(null), 4000);
+    }
+  };
+
+  const handleFoundItemClick = (item: any) => {
+    setFoundForm(prev => ({
+      ...prev,
+      category: item.category,
+      locationFound: item.location,
+      title: `Found ${item.title}`,
+      description: `Matching details for reported lost item: ${item.description}`,
+    }));
+    setActiveTab('report-found');
+    setActiveNotification('Prefilling details to report the found item.');
+    setTimeout(() => setActiveNotification(null), 4000);
+  };
+
   // ==========================================
   // 8. RENDER AUTHENTICATION VIEW (PORTAL)
   // ==========================================
@@ -1021,12 +1131,80 @@ export default function App() {
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 font-sans relative overflow-hidden">
+        {activeNotification && (
+          <div className="fixed top-6 right-6 z-50 p-4 rounded-xl border border-indigo-500/30 bg-slate-900/90 backdrop-blur-md shadow-2xl animate-glow transition-all max-w-md flex items-start gap-3 animate-slide-in">
+            <div className="p-2 rounded-lg bg-indigo-600/20 text-indigo-400">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm text-slate-100">System Notification</h4>
+              <p className="text-xs text-slate-300 mt-0.5">{activeNotification}</p>
+            </div>
+          </div>
+        )}
+
         {/* Decorative background grids/glowing circles */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/30 via-slate-950 to-slate-950 z-0"></div>
 
         <div className="w-full max-w-md bg-slate-900/60 border border-slate-800 backdrop-blur-md rounded-2xl p-8 shadow-2xl relative z-10">
+
+          {/* Server Settings Gear on Login Page */}
+          <div className="absolute top-6 right-6">
+            <div className="relative">
+              <button
+                onClick={() => setShowServerSettings(!showServerSettings)}
+                className={`p-2 rounded-xl border border-slate-800/80 bg-slate-950 text-indigo-400 hover:bg-slate-800 transition-all flex items-center justify-center cursor-pointer ${showServerSettings ? 'ring-1 ring-indigo-500' : ''}`}
+                title="Server Connection Settings"
+              >
+                ⚙
+              </button>
+
+              {showServerSettings && (
+                <div className="absolute right-0 mt-2 w-72 p-4 rounded-xl border border-slate-800 bg-slate-900/95 backdrop-blur-md shadow-2xl z-30 flex flex-col gap-3">
+                  <h4 className="text-xs font-bold text-slate-200">Server Connection Settings</h4>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">Backend API URL</label>
+                    <input
+                      type="text"
+                      value={apiUrl}
+                      onChange={(e) => setApiUrl(e.target.value)}
+                      placeholder="http://localhost:3000"
+                      className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                  <div className="flex justify-between gap-2 mt-1">
+                    <button
+                      onClick={() => setShowServerSettings(false)}
+                      className="px-3 py-1.5 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-200 text-[10px] font-semibold cursor-pointer"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={async () => {
+                        localStorage.setItem('trustnet_api_url', apiUrl);
+                        setActiveNotification('Testing API connection...');
+                        const success = await loadData(currentUser, apiUrl);
+                        if (success) {
+                          setActiveNotification('Successfully connected to backend database!');
+                          setShowServerSettings(false);
+                        } else {
+                          setActiveNotification('Failed to connect to backend database. Offline mode active.');
+                        }
+                        setTimeout(() => setActiveNotification(null), 5000);
+                      }}
+                      className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold cursor-pointer"
+                    >
+                      Save & Reconnect
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Logo */}
           <div className="flex flex-col items-center gap-2 mb-8">
@@ -1450,12 +1628,17 @@ export default function App() {
                       Close
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         localStorage.setItem('trustnet_api_url', apiUrl);
-                        setShowServerSettings(false);
-                        loadData();
-                        setActiveNotification('API URL updated! Reconnecting...');
-                        setTimeout(() => setActiveNotification(null), 4000);
+                        setActiveNotification('Testing API connection...');
+                        const success = await loadData(currentUser, apiUrl);
+                        if (success) {
+                          setActiveNotification('Successfully connected to backend database!');
+                          setShowServerSettings(false);
+                        } else {
+                          setActiveNotification('Failed to connect to backend database. Offline mode active.');
+                        }
+                        setTimeout(() => setActiveNotification(null), 5000);
                       }}
                       className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold cursor-pointer"
                     >
@@ -1635,6 +1818,207 @@ export default function App() {
                   </div>
                 </div>
 
+              </div>
+
+              {/* Active Campus Reports Feed */}
+              <div className="bg-slate-900/40 border border-slate-800/80 p-6 rounded-2xl flex flex-col gap-6">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-display font-semibold text-slate-100 flex items-center gap-2 text-sm">
+                      📢 Active Campus Reports Feed
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Browse all active lost and found items currently reported on campus.
+                    </p>
+                  </div>
+
+                  {/* Search and Category Filters */}
+                  <div className="flex flex-wrap gap-2.5 items-center">
+                    <input
+                      type="text"
+                      placeholder="Search reports..."
+                      value={dashboardSearch}
+                      onChange={(e) => setDashboardSearch(e.target.value)}
+                      className="bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-1.5 text-[11px] focus:outline-none text-slate-200 w-full sm:w-[150px]"
+                    />
+
+                    <select
+                      value={dashboardFilterCategory}
+                      onChange={(e) => setDashboardFilterCategory(e.target.value)}
+                      className="bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-1.5 text-[11px] focus:outline-none text-slate-200 cursor-pointer w-full sm:w-auto"
+                    >
+                      <option value="All">All Categories</option>
+                      <option value="Electronics">Electronics</option>
+                      <option value="Documents">Documents</option>
+                      <option value="Keys">Keys</option>
+                      <option value="Personal Items">Personal Items</option>
+                      <option value="Bags & Backpacks">Bags & Backpacks</option>
+                    </select>
+
+                    <div className="flex bg-slate-950 border border-slate-800 rounded-xl p-0.5 w-full sm:w-auto justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setDashboardFilterType('all')}
+                        className={`px-3 py-1 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${
+                          dashboardFilterType === 'all' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDashboardFilterType('lost')}
+                        className={`px-3 py-1 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${
+                          dashboardFilterType === 'lost' ? 'bg-rose-600/20 text-rose-400' : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        Lost
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDashboardFilterType('found')}
+                        className={`px-3 py-1 text-[9px] font-bold rounded-lg transition-all cursor-pointer ${
+                          dashboardFilterType === 'found' ? 'bg-emerald-600/20 text-emerald-400' : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        Found
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {filteredReports.length === 0 ? (
+                  <div className="border border-dashed border-slate-800/80 rounded-xl p-8 text-center text-slate-500 text-xs">
+                    No active reports match the criteria.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {filteredReports.map((item) => {
+                      const reporter = item.type === 'lost'
+                        ? (item.owner || users.find((u: any) => u.id === item.ownerId) || currentUser)
+                        : (item.finder || users.find((u: any) => u.id === item.finderId));
+                      const isMyReport = reporter?.id === currentUser?.id;
+
+                      return (
+                        <div
+                          key={item.id}
+                          className="bg-slate-950/40 border border-slate-800/60 hover:border-slate-700/60 rounded-2xl p-5 flex flex-col justify-between transition-all group glass-panel-hover"
+                        >
+                          <div className="flex flex-col gap-3.5">
+                            {/* Header details: Status Tag and Date */}
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`text-[8px] px-2 py-0.5 rounded font-black uppercase tracking-wider ${
+                                  item.type === 'lost'
+                                    ? 'bg-rose-500/10 text-rose-400 border border-rose-500/25'
+                                    : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
+                                }`}
+                              >
+                                {item.type === 'lost' ? 'LOST' : 'FOUND'}
+                              </span>
+                              <span className="text-[9px] text-slate-500 font-mono">
+                                {new Date(item.date).toLocaleDateString()}
+                              </span>
+                            </div>
+
+                            {/* Image Preview Container */}
+                            {item.imageUrl ? (
+                              <div className="w-full h-32 rounded-xl overflow-hidden border border-slate-800/80 bg-slate-900 flex items-center justify-center relative">
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-full h-24 rounded-xl border border-slate-800/40 bg-slate-900/30 flex flex-col items-center justify-center text-slate-600 gap-1">
+                                <span className="text-xl">
+                                  {item.category === 'Electronics' ? '💻' :
+                                   item.category === 'Documents' ? '📄' :
+                                   item.category === 'Keys' ? '🔑' :
+                                   item.category === 'Bags & Backpacks' ? '🎒' : '📦'}
+                                </span>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                                  {item.category}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Text Info */}
+                            <div>
+                              <h4 className="font-bold text-xs text-slate-200 group-hover:text-white transition-all line-clamp-1">
+                                {item.title}
+                              </h4>
+                              <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                                {item.description}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3.5 text-[9px] text-slate-500 font-medium">
+                                <span className="flex items-center gap-0.5">
+                                  📍 {item.location}
+                                </span>
+                                <span>•</span>
+                                <span className="bg-slate-900/80 border border-slate-800/60 px-1.5 py-0.2 rounded text-[8px]">
+                                  {item.category}
+                                </span>
+                                {item.fingerprint && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-slate-600 font-mono truncate max-w-[120px]" title={item.fingerprint}>
+                                      ⚙️ {item.fingerprint.split('-').filter((x: string) => x !== 'ANY').join('/') || 'Basic'}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Footer Details & Action Button */}
+                          <div className="border-t border-slate-800/40 pt-3.5 mt-4 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center font-bold text-[8px] text-indigo-400 uppercase">
+                                {reporter?.name ? reporter.name.split(' ').map((n: string) => n[0]).join('') : 'A'}
+                              </div>
+                              <div className="leading-none">
+                                <span className="text-[10px] font-bold text-slate-300 flex items-center gap-1">
+                                  {reporter?.name || 'Anonymous'}
+                                  {isMyReport && (
+                                    <span className="text-[7px] bg-indigo-600 text-white px-1 py-0.2 rounded-sm font-semibold">
+                                      You
+                                    </span>
+                                  )}
+                                </span>
+                                {reporter && (
+                                  <span className="text-[8px] text-slate-500 mt-0.5 block font-mono">
+                                    Trust: {reporter.trustScore} ({getTrustTier(reporter.trustScore).name})
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Action Trigger */}
+                            {isMyReport ? (
+                              <span className="text-[9px] text-slate-500 italic">Your report</span>
+                            ) : item.type === 'found' ? (
+                              <button
+                                onClick={() => handleClaimItemClick(item)}
+                                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[9px] font-bold transition-all cursor-pointer shadow-md shadow-indigo-600/10"
+                              >
+                                Claim Item
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleFoundItemClick(item)}
+                                className="px-2.5 py-1 hover:bg-emerald-600/10 text-emerald-400 border border-emerald-500/30 hover:border-emerald-500/50 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
+                              >
+                                I Found This
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
             </div>
