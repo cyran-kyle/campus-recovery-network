@@ -242,7 +242,11 @@ const verifyClaimAnswersLocal = (claimantAnswers: any[], secretQuestions: any[])
 
 export default function App() {
   const [apiUrl, setApiUrl] = useState<string>(() => {
-    return localStorage.getItem('trustnet_api_url') || import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const saved = localStorage.getItem('trustnet_api_url');
+    if (import.meta.env.VITE_API_URL && (!saved || saved.includes('localhost'))) {
+      return import.meta.env.VITE_API_URL;
+    }
+    return saved || import.meta.env.VITE_API_URL || 'http://localhost:3000';
   });
   const [showServerSettings, setShowServerSettings] = useState(false);
   const API_URL = apiUrl.replace(/\/+$/, '');
