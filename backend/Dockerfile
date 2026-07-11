@@ -1,6 +1,6 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
-RUN apk add --no-cache curl postgresql-client
+RUN apk add --no-cache curl postgresql-client libc6-compat
 
 WORKDIR /app
 

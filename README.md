@@ -24,9 +24,9 @@ From the root directory of the project, run:
 docker compose up
 ```
 
-*Note: Add the `--build` flag if you want to rebuild the container images (e.g., after modifying `package.json` dependencies):*
+*Note: If you modify dependencies in `package.json` (such as updating NestJS or adding package versions), make sure to rebuild the images and renew the anonymous volumes to prevent Docker from using outdated cached dependencies:*
 ```bash
-docker compose up --build
+docker compose up --build -V
 ```
 
 ### 2. Access the Applications
@@ -71,4 +71,21 @@ docker compose down
 To stop the containers and **wipe the database volume** (e.g., to reset all data and re-run fresh seeds):
 ```bash
 docker compose down -v
+```
+
+---
+
+## Troubleshooting
+
+### Failed to load `@swc/cli` and/or `@swc/core` error
+If the backend container crashes on startup with the following error:
+```
+Error: Failed to load "@swc/cli" and/or "@swc/core" required packages. Please, make sure to install them as development dependencies.
+```
+This is caused by Docker Compose reusing an outdated anonymous volume for `/app/node_modules`. 
+
+**Solution:**
+Recreate the container and force Docker to recreate the anonymous volumes (which will copy the new Alpine-compatible binaries from the built image):
+```bash
+docker compose up --build -V
 ```
