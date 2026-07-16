@@ -270,6 +270,7 @@ export default function App() {
   });
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [loginForm, setLoginForm] = useState({ studentId: '', password: '' });
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [registerForm, setRegisterForm] = useState({
     studentId: '',
     name: '',
@@ -570,33 +571,39 @@ export default function App() {
       return;
     }
 
-    if (backendActive) {
-      try {
-        const res = await apiFetch(`${API_URL}/users/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loginForm),
-        });
-        if (res.ok) {
-          const user = await res.json();
-          setCurrentUser(user);
-          localStorage.setItem('trustnet_user', JSON.stringify(user));
-          setLoginForm({ studentId: '', password: '' });
-          setActiveTab('dashboard');
-          setActiveNotification(`Welcome back, ${user.name}!`);
-          setTimeout(() => setActiveNotification(null), 4000);
-        } else {
-          const err = await res.json();
-          alert(err.message || 'Invalid credentials');
+    setIsLoggingIn(true);
+    try {
+      if (backendActive) {
+        try {
+          const res = await apiFetch(`${API_URL}/users/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(loginForm),
+          });
+          if (res.ok) {
+            const user = await res.json();
+            setCurrentUser(user);
+            localStorage.setItem('trustnet_user', JSON.stringify(user));
+            setLoginForm({ studentId: '', password: '' });
+            setActiveTab('dashboard');
+            setActiveNotification(`Welcome back, ${user.name}!`);
+            setTimeout(() => setActiveNotification(null), 4000);
+          } else {
+            const err = await res.json();
+            alert(err.message || 'Invalid credentials');
+          }
+        } catch (err) {
+          console.error('Backend auth failed:', err);
+          handleLocalLogin();
         }
-      } catch (err) {
-        console.error('Backend auth failed:', err);
+      } else {
         handleLocalLogin();
       }
-    } else {
-      handleLocalLogin();
+    } finally {
+      setIsLoggingIn(false);
     }
   };
+
 
   const handleLocalLogin = () => {
     const target = users.find(
@@ -1294,10 +1301,22 @@ export default function App() {
 
               <button
                 type="submit"
-                className="mt-2 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/15 hover:scale-[1.01] cursor-pointer"
+                disabled={isLoggingIn}
+                className="mt-2 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/15 hover:scale-[1.01] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sign In to Account
+                {isLoggingIn ? 'Signing In...' : 'Sign In to Account'}
               </button>
+
+              {isLoggingIn && (
+                <div className="mt-4 flex flex-col gap-2">
+                  <div className="w-full h-1 bg-slate-950 rounded-full overflow-hidden relative">
+                    <div className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full animate-progress"></div>
+                  </div>
+                  <span className="text-[10px] text-indigo-400 font-semibold text-center animate-pulse tracking-wide">
+                    Authenticating credentials, please wait...
+                  </span>
+                </div>
+              )}
             </form>
           ) : (
             <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4 max-h-[420px] overflow-y-auto pr-1">
