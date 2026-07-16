@@ -27,14 +27,22 @@ export class AppController {
                     `💻 *Device:* ${ua.substring(0, 80)}...`;
 
     try {
-      const apiUrl = process.env.LEVANTER_API_URL;
+      const rawApiUrl = process.env.LEVANTER_API_URL;
       const apiKey = process.env.LEVANTER_API_KEY;
-      if (!apiUrl || !apiKey) {
+      if (!rawApiUrl || !apiKey) {
         console.warn('Levanter API configuration missing, visitor tracking skipped.');
         return { success: false, error: 'Tracking not configured' };
       }
       
-      const response = await fetch(`${apiUrl.replace(/\/+$/, '')}/api/send`, {
+      // Sanitize URL (remove markdown link wrapper if pasted by mistake, e.g. [url](url))
+      let apiUrl = rawApiUrl.trim();
+      const mdLinkMatch = apiUrl.match(/\[.*?\]\((.*?)\)/);
+      if (mdLinkMatch) {
+        apiUrl = mdLinkMatch[1];
+      }
+      apiUrl = apiUrl.replace(/\/+$/, '');
+
+      const response = await fetch(`${apiUrl}/api/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
