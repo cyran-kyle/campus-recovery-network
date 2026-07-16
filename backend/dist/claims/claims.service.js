@@ -11,6 +11,7 @@ Object.defineProperty(exports, "ClaimsService", {
 const _common = require("@nestjs/common");
 const _prismaservice = require("../prisma/prisma.service");
 const _usersservice = require("../users/users.service");
+const _notificationsservice = require("../notifications/notifications.service");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -58,6 +59,15 @@ let ClaimsService = class ClaimsService {
                 answers: answers,
                 status: 'PENDING'
             }
+        });
+        // Send WhatsApp Alert
+        const claimant = await this.prisma.user.findUnique({
+            where: {
+                id: claimantId
+            }
+        });
+        this.notificationsService.sendClaimSubmittedAlert(claim, claimant?.name || 'Unknown', match.lostItem.title, verificationScore).catch((err)=>{
+            console.error('Failed to send claim WhatsApp alert:', err);
         });
         // 6. Auto-process high-confidence claims (score >= 70)
         if (verificationScore >= 70) {
@@ -168,6 +178,20 @@ let ClaimsService = class ClaimsService {
         await this.usersService.updateTrustScore(claim.claimantId, 10, `Successfully recovered lost item [${claim.match.lostItem.title}]`);
         // Finder gets +10 points for returning the item
         await this.usersService.updateTrustScore(claim.match.foundItem.finderId, 10, `Successfully returned found item [${claim.match.foundItem.title}] to its owner`);
+        // Send WhatsApp Alert
+        const claimantUser = await this.prisma.user.findUnique({
+            where: {
+                id: claim.claimantId
+            }
+        });
+        const finderUser = await this.prisma.user.findUnique({
+            where: {
+                id: claim.match.foundItem.finderId
+            }
+        });
+        this.notificationsService.sendItemRecoveredAlert(claim.match.lostItem.title, claimantUser?.name || 'Unknown User', finderUser?.name || 'Unknown Finder').catch((err)=>{
+            console.error('Failed to send item recovered alert:', err);
+        });
         return this.findOne(claimId);
     }
     /**
@@ -262,9 +286,10 @@ let ClaimsService = class ClaimsService {
             }
         });
     }
-    constructor(prisma, usersService){
+    constructor(prisma, usersService, notificationsService){
         this.prisma = prisma;
         this.usersService = usersService;
+        this.notificationsService = notificationsService;
     }
 };
 ClaimsService = _ts_decorate([
@@ -272,7 +297,8 @@ ClaimsService = _ts_decorate([
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
         typeof _prismaservice.PrismaService === "undefined" ? Object : _prismaservice.PrismaService,
-        typeof _usersservice.UsersService === "undefined" ? Object : _usersservice.UsersService
+        typeof _usersservice.UsersService === "undefined" ? Object : _usersservice.UsersService,
+        typeof _notificationsservice.NotificationsService === "undefined" ? Object : _notificationsservice.NotificationsService
     ])
 ], ClaimsService);
 

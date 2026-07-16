@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MatchingService } from '../matching/matching.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ItemsService {
   constructor(
     private prisma: PrismaService,
     private matchingService: MatchingService,
+    private notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -62,6 +64,11 @@ export class ItemsService {
       console.error('Error matching lost item:', err);
     });
 
+    // Send WhatsApp Alert
+    this.notificationsService.sendLostItemAlert(lostItem, user.name).catch((err) => {
+      console.error('Failed to send lost item WhatsApp alert:', err);
+    });
+
     return lostItem;
   }
 
@@ -97,6 +104,11 @@ export class ItemsService {
     // Run matching asynchronously
     this.matchingService.matchFoundItem(foundItem).catch((err) => {
       console.error('Error matching found item:', err);
+    });
+
+    // Send WhatsApp Alert
+    this.notificationsService.sendFoundItemAlert(foundItem, user.name).catch((err) => {
+      console.error('Failed to send found item WhatsApp alert:', err);
     });
 
     return foundItem;

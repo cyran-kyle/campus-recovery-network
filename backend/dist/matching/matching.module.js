@@ -11,6 +11,7 @@ Object.defineProperty(exports, "MatchingModule", {
 const _common = require("@nestjs/common");
 const _matchingservice = require("./matching.service");
 const _matchingcontroller = require("./matching.controller");
+const _notificationsmodule = require("../notifications/notifications.module");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -21,6 +22,9 @@ let MatchingModule = class MatchingModule {
 };
 MatchingModule = _ts_decorate([
     (0, _common.Module)({
+        imports: [
+            _notificationsmodule.NotificationsModule
+        ],
         controllers: [
             _matchingcontroller.MatchingController
         ],

@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async findAll() {
     return this.prisma.user.findMany({
@@ -77,6 +81,11 @@ export class UsersService {
       },
     });
 
+    // Send WhatsApp Alert
+    this.notificationsService.sendUserRegisteredAlert(user).catch(err => {
+      console.error('Failed to send registration alert:', err);
+    });
+
     return this.findOne(user.id);
   }
 
@@ -147,6 +156,11 @@ export class UsersService {
           scoreChange: 100,
           reason: 'Account creation registration bonus',
         },
+      });
+
+      // Send WhatsApp Alert
+      this.notificationsService.sendUserRegisteredAlert(user).catch(err => {
+        console.error('Failed to send registration alert:', err);
       });
     }
 

@@ -10,6 +10,7 @@ Object.defineProperty(exports, "UsersService", {
 });
 const _common = require("@nestjs/common");
 const _prismaservice = require("../prisma/prisma.service");
+const _notificationsservice = require("../notifications/notifications.service");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -94,6 +95,10 @@ let UsersService = class UsersService {
                 reason: 'Account creation registration bonus'
             }
         });
+        // Send WhatsApp Alert
+        this.notificationsService.sendUserRegisteredAlert(user).catch((err)=>{
+            console.error('Failed to send registration alert:', err);
+        });
         return this.findOne(user.id);
     }
     async login(studentId, password) {
@@ -170,6 +175,10 @@ let UsersService = class UsersService {
                     reason: 'Account creation registration bonus'
                 }
             });
+            // Send WhatsApp Alert
+            this.notificationsService.sendUserRegisteredAlert(user).catch((err)=>{
+                console.error('Failed to send registration alert:', err);
+            });
         }
         return this.findOne(user.id);
     }
@@ -202,15 +211,17 @@ let UsersService = class UsersService {
         ]);
         return this.findOne(userId);
     }
-    constructor(prisma){
+    constructor(prisma, notificationsService){
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
     }
 };
 UsersService = _ts_decorate([
     (0, _common.Injectable)(),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
-        typeof _prismaservice.PrismaService === "undefined" ? Object : _prismaservice.PrismaService
+        typeof _prismaservice.PrismaService === "undefined" ? Object : _prismaservice.PrismaService,
+        typeof _notificationsservice.NotificationsService === "undefined" ? Object : _notificationsservice.NotificationsService
     ])
 ], UsersService);
 

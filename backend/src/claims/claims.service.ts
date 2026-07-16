@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ClaimsService {
   constructor(
     private prisma: PrismaService,
     private usersService: UsersService,
+    private notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -51,6 +53,17 @@ export class ClaimsService {
         answers: answers as any,
         status: 'PENDING',
       },
+    });
+
+    // Send WhatsApp Alert
+    const claimant = await this.prisma.user.findUnique({ where: { id: claimantId } });
+    this.notificationsService.sendClaimSubmittedAlert(
+      claim,
+      claimant?.name || 'Unknown',
+      match.lostItem.title,
+      verificationScore
+    ).catch(err => {
+      console.error('Failed to send claim WhatsApp alert:', err);
     });
 
     // 6. Auto-process high-confidence claims (score >= 70)
@@ -183,6 +196,18 @@ export class ClaimsService {
       10,
       `Successfully returned found item [${claim.match.foundItem.title}] to its owner`,
     );
+
+    // Send WhatsApp Alert
+    const claimantUser = await this.prisma.user.findUnique({ where: { id: claim.claimantId } });
+    const finderUser = await this.prisma.user.findUnique({ where: { id: claim.match.foundItem.finderId } });
+    
+    this.notificationsService.sendItemRecoveredAlert(
+      claim.match.lostItem.title,
+      claimantUser?.name || 'Unknown User',
+      finderUser?.name || 'Unknown Finder'
+    ).catch(err => {
+      console.error('Failed to send item recovered alert:', err);
+    });
 
     return this.findOne(claimId);
   }

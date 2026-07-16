@@ -7,6 +7,7 @@ import { ItemsModule } from './items/items.module';
 import { MatchingModule } from './matching/matching.module';
 import { ClaimsModule } from './claims/claims.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -16,8 +17,10 @@ import { AnalyticsModule } from './analytics/analytics.module';
     MatchingModule,
     ClaimsModule,
     AnalyticsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+

@@ -12,6 +12,7 @@ const _common = require("@nestjs/common");
 const _claimsservice = require("./claims.service");
 const _claimscontroller = require("./claims.controller");
 const _usersmodule = require("../users/users.module");
+const _notificationsmodule = require("../notifications/notifications.module");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -23,7 +24,8 @@ let ClaimsModule = class ClaimsModule {
 ClaimsModule = _ts_decorate([
     (0, _common.Module)({
         imports: [
-            _usersmodule.UsersModule
+            _usersmodule.UsersModule,
+            _notificationsmodule.NotificationsModule
         ],
         controllers: [
             _claimscontroller.ClaimsController

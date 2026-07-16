@@ -11,6 +11,7 @@ Object.defineProperty(exports, "ItemsService", {
 const _common = require("@nestjs/common");
 const _prismaservice = require("../prisma/prisma.service");
 const _matchingservice = require("../matching/matching.service");
+const _notificationsservice = require("../notifications/notifications.service");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -65,6 +66,10 @@ let ItemsService = class ItemsService {
         this.matchingService.matchLostItem(lostItem).catch((err)=>{
             console.error('Error matching lost item:', err);
         });
+        // Send WhatsApp Alert
+        this.notificationsService.sendLostItemAlert(lostItem, user.name).catch((err)=>{
+            console.error('Failed to send lost item WhatsApp alert:', err);
+        });
         return lostItem;
     }
     async createFoundItem(finderId, data) {
@@ -100,6 +105,10 @@ let ItemsService = class ItemsService {
         // Run matching asynchronously
         this.matchingService.matchFoundItem(foundItem).catch((err)=>{
             console.error('Error matching found item:', err);
+        });
+        // Send WhatsApp Alert
+        this.notificationsService.sendFoundItemAlert(foundItem, user.name).catch((err)=>{
+            console.error('Failed to send found item WhatsApp alert:', err);
         });
         return foundItem;
     }
@@ -175,9 +184,10 @@ let ItemsService = class ItemsService {
             }
         });
     }
-    constructor(prisma, matchingService){
+    constructor(prisma, matchingService, notificationsService){
         this.prisma = prisma;
         this.matchingService = matchingService;
+        this.notificationsService = notificationsService;
     }
 };
 ItemsService = _ts_decorate([
@@ -185,7 +195,8 @@ ItemsService = _ts_decorate([
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
         typeof _prismaservice.PrismaService === "undefined" ? Object : _prismaservice.PrismaService,
-        typeof _matchingservice.MatchingService === "undefined" ? Object : _matchingservice.MatchingService
+        typeof _matchingservice.MatchingService === "undefined" ? Object : _matchingservice.MatchingService,
+        typeof _notificationsservice.NotificationsService === "undefined" ? Object : _notificationsservice.NotificationsService
     ])
 ], ItemsService);
 

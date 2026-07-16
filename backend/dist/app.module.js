@@ -17,6 +17,7 @@ const _itemsmodule = require("./items/items.module");
 const _matchingmodule = require("./matching/matching.module");
 const _claimsmodule = require("./claims/claims.module");
 const _analyticsmodule = require("./analytics/analytics.module");
+const _notificationsmodule = require("./notifications/notifications.module");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -33,7 +34,8 @@ AppModule = _ts_decorate([
             _itemsmodule.ItemsModule,
             _matchingmodule.MatchingModule,
             _claimsmodule.ClaimsModule,
-            _analyticsmodule.AnalyticsModule
+            _analyticsmodule.AnalyticsModule,
+            _notificationsmodule.NotificationsModule
         ],
         controllers: [
             _appcontroller.AppController

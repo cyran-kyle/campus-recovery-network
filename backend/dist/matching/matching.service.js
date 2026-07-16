@@ -10,6 +10,7 @@ Object.defineProperty(exports, "MatchingService", {
 });
 const _common = require("@nestjs/common");
 const _prismaservice = require("../prisma/prisma.service");
+const _notificationsservice = require("../notifications/notifications.service");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -50,6 +51,10 @@ let MatchingService = class MatchingService {
                     });
                     matchesCreated.push(match);
                     this.logger.log(`Created match between Lost [${lostItem.title}] and Found [${foundItem.title}] with score ${score}`);
+                    // Send WhatsApp Alert
+                    this.notificationsService.sendMatchDetectedAlert(score, lostItem.title, foundItem.title).catch((err)=>{
+                        this.logger.error('Failed to send match alert:', err);
+                    });
                 }
             }
         }
@@ -95,6 +100,10 @@ let MatchingService = class MatchingService {
                     });
                     matchesCreated.push(match);
                     this.logger.log(`Created match between Found [${foundItem.title}] and Lost [${lostItem.title}] with score ${score}`);
+                    // Send WhatsApp Alert
+                    this.notificationsService.sendMatchDetectedAlert(score, lostItem.title, foundItem.title).catch((err)=>{
+                        this.logger.error('Failed to send match alert:', err);
+                    });
                 }
             }
         }
@@ -314,8 +323,9 @@ let MatchingService = class MatchingService {
             }
         });
     }
-    constructor(prisma){
+    constructor(prisma, notificationsService){
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
         this.logger = new _common.Logger(MatchingService.name);
     }
 };
@@ -323,7 +333,8 @@ MatchingService = _ts_decorate([
     (0, _common.Injectable)(),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
-        typeof _prismaservice.PrismaService === "undefined" ? Object : _prismaservice.PrismaService
+        typeof _prismaservice.PrismaService === "undefined" ? Object : _prismaservice.PrismaService,
+        typeof _notificationsservice.NotificationsService === "undefined" ? Object : _notificationsservice.NotificationsService
     ])
 ], MatchingService);
 

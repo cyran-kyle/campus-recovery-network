@@ -1,12 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LostItem, FoundItem } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class MatchingService {
   private readonly logger = new Logger(MatchingService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   /**
    * Run matching for a newly created Lost Item
@@ -40,6 +44,11 @@ export class MatchingService {
           });
           matchesCreated.push(match);
           this.logger.log(`Created match between Lost [${lostItem.title}] and Found [${foundItem.title}] with score ${score}`);
+          
+          // Send WhatsApp Alert
+          this.notificationsService.sendMatchDetectedAlert(score, lostItem.title, foundItem.title).catch(err => {
+            this.logger.error('Failed to send match alert:', err);
+          });
         }
       }
     }
@@ -86,6 +95,11 @@ export class MatchingService {
           });
           matchesCreated.push(match);
           this.logger.log(`Created match between Found [${foundItem.title}] and Lost [${lostItem.title}] with score ${score}`);
+
+          // Send WhatsApp Alert
+          this.notificationsService.sendMatchDetectedAlert(score, lostItem.title, foundItem.title).catch(err => {
+            this.logger.error('Failed to send match alert:', err);
+          });
         }
       }
     }

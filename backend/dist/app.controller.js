@@ -10,6 +10,7 @@ Object.defineProperty(exports, "AppController", {
 });
 const _common = require("@nestjs/common");
 const _appservice = require("./app.service");
+const _notificationsservice = require("./notifications/notifications.service");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -36,52 +37,21 @@ let AppController = class AppController {
             timeZone: 'Africa/Accra'
         });
         const message = `🔔 *New CRN Website Visit!*\n\n` + `📅 *Time:* ${visitTime}\n` + `🌐 *IP:* \`${ip}\`\n` + `💻 *Device:* ${ua.substring(0, 80)}...`;
-        try {
-            const rawApiUrl = process.env.LEVANTER_API_URL;
-            const apiKey = process.env.LEVANTER_API_KEY;
-            if (!rawApiUrl || !apiKey) {
-                console.warn('Levanter API configuration missing, visitor tracking skipped.');
-                return {
-                    success: false,
-                    error: 'Tracking not configured'
-                };
-            }
-            // Sanitize URL (remove markdown link wrapper if pasted by mistake, e.g. [url](url))
-            let apiUrl = rawApiUrl.trim();
-            const mdLinkMatch = apiUrl.match(/\[.*?\]\((.*?)\)/);
-            if (mdLinkMatch) {
-                apiUrl = mdLinkMatch[1];
-            }
-            apiUrl = apiUrl.replace(/\/+$/, '');
-            const response = await fetch(`${apiUrl}/api/send`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKey
-                },
-                body: JSON.stringify({
-                    to: '233596371001',
-                    type: 'text',
-                    text: message
-                })
-            });
-            if (!response.ok) {
-                throw new Error(`WhatsApp API responded with status ${response.status}`);
-            }
-            return {
-                success: true,
-                message: 'Visit logged successfully.'
-            };
-        } catch (error) {
-            console.error('Failed to send visit alert:', error.message);
+        const success = await this.notificationsService.sendWhatsAppAlert(message);
+        if (!success) {
             return {
                 success: false,
                 error: 'Failed to process tracker'
             };
         }
+        return {
+            success: true,
+            message: 'Visit logged successfully.'
+        };
     }
-    constructor(appService){
+    constructor(appService, notificationsService){
         this.appService = appService;
+        this.notificationsService = notificationsService;
     }
 };
 _ts_decorate([
@@ -107,7 +77,8 @@ AppController = _ts_decorate([
     (0, _common.Controller)(),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
-        typeof _appservice.AppService === "undefined" ? Object : _appservice.AppService
+        typeof _appservice.AppService === "undefined" ? Object : _appservice.AppService,
+        typeof _notificationsservice.NotificationsService === "undefined" ? Object : _notificationsservice.NotificationsService
     ])
 ], AppController);
 
