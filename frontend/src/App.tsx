@@ -512,7 +512,29 @@ export default function App() {
 
   useEffect(() => {
     loadData();
+
+    // Fire-and-forget visit tracker
+    const trackVisit = async () => {
+      try {
+        await fetch(`${API_URL}/api/track-visit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      } catch (err) {
+        // Silently ignore errors so the user experience isn't affected
+        console.warn("Tracker couldn't connect.");
+      }
+    };
+
+    if (import.meta.env.PROD) {
+      trackVisit();
+    } else {
+      console.log("Visit tracking skipped in local development.");
+    }
   }, []);
+
 
   useEffect(() => {
     if (backendActive === false) {

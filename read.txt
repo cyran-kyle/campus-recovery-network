@@ -1,0 +1,96 @@
+This is the ultimate developer rite of passage—setting up instant "stalker alerts" for your own website! It is incredibly satisfying to hear your pocket buzz the second someone clicks your link.
+
+Since you have a static frontend (campus-recovery-network-1) and a Node.js backend (campus-recovery-backend), the cleanest way to do this is to have your frontend fire off a quick "ping" to your backend when the page loads, and then let your backend compile the data and ping your WhatsApp bot.
+
+Here is how to set it up in a few simple steps.
+
+Step 1: Add a Tracker Endpoint to your Backend
+In your campus-recovery-backend codebase (assuming it is an Express/Node.js app), add this API endpoint.
+
+This route extracts the visitor's IP address, device type (User-Agent), and the exact time of the visit, then forwards a formatted message to your WhatsApp number.
+
+JavaScript
+// Add this route to your campus-recovery-backend server file (e.g., server.js or app.js)
+
+app.post('/api/track-visit', async (req, res) => {
+  // 1. Extract visitor information
+  // On Render, the real client IP is forwarded in 'x-forwarded-for'
+  const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
+  const ip = rawIp.split(',')[0].trim(); // Get the primary IP if behind proxies
+  
+  const userAgent = req.headers['user-agent'] || 'Unknown Device';
+  const visitTime = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' }); // Adjust timezone as needed!
+
+  // 2. Format a clean, readable message for your WhatsApp
+  const message = `🔔 *New CRN Website Visit!*\n\n` +
+                  `📅 *Time:* ${visitTime}\n` +
+                  `🌐 *IP:* \`${ip}\`\n` +
+                  `💻 *Device:* ${userAgent.substring(0, 80)}...`;
+
+  try {
+    // 3. Send the request to your Levanter Bot
+    const response = await fetch(`${process.env.LEVANTER_API_URL}/api/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.LEVANTER_API_KEY
+      },
+      body: JSON.stringify({
+        to: "233596371001", // Your WhatsApp number
+        type: "text",
+        text: message
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`WhatsApp API responded with status ${response.status}`);
+    }
+
+    res.status(200).json({ success: true, message: "Visit logged successfully." });
+  } catch (error) {
+    console.error("Failed to send visit alert:", error.message);
+    // Don't crash the user's browser experience if the WhatsApp API is down
+    res.status(500).json({ success: false, error: "Failed to process tracker" });
+  }
+});
+Step 2: Trigger the Ping on Your Frontend
+In your frontend code (campus-recovery-network-1), you just need to call this endpoint as soon as the main layout or homepage mounts.
+
+If you're using React/Next.js:
+Add this inside your main page or layout file (e.g., pages/index.tsx or a global layout component):
+
+TypeScript
+import { useEffect } from 'react';
+
+export default function Home() {
+  useEffect(() => {
+    // Fire-and-forget visit tracker
+    const trackVisit = async () => {
+      try {
+        await fetch('https://YOUR-BACKEND-URL.onrender.com/api/track-visit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+      } catch (err) {
+        // Silently ignore errors so the user experience isn't affected
+        console.warn("Tracker couldn't connect.");
+      }
+    };
+
+    // Prevent tracking in local development so you don't spam yourself
+    if (process.env.NODE_ENV === 'production') {
+      trackVisit();
+    }
+  }, []);
+
+  return (
+    <div>
+      {/* Your Campus Recovery Network page UI */}
+    </div>
+  );
+}
+(Make sure to replace [https://YOUR-BACKEND-URL.onrender.com](https://YOUR-BACKEND-URL.onrender.com) with your actual live Render backend URL!)
+
+https://campus-recovery-backend-2ac0.onrender.com
