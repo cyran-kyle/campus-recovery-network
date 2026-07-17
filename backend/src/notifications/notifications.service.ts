@@ -46,6 +46,18 @@ export class NotificationsService {
     }
   }
 
+  async sendUserLoginAlert(user: any, ipAddress?: string, userAgent?: string) {
+    const time = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
+    const ip = ipAddress || 'Unknown IP';
+    const ua = userAgent || 'Unknown Device';
+    const message = `🔑 *CRN User Login!*\n\n` +
+                    `👤 *User:* ${user.name} (\`${user.studentId}\`)\n` +
+                    `📅 *Time:* ${time}\n` +
+                    `🌐 *IP:* \`${ip}\`\n` +
+                    `💻 *Device:* ${ua.substring(0, 80)}...`;
+    return this.sendWhatsAppAlert(message);
+  }
+
   async sendUserRegisteredAlert(user: any) {
     const time = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
     const message = `👤 *New User Registered!*\n\n` +

@@ -101,7 +101,7 @@ let UsersService = class UsersService {
         });
         return this.findOne(user.id);
     }
-    async login(studentId, password) {
+    async login(studentId, password, ipAddress, userAgent) {
         const user = await this.prisma.user.findFirst({
             where: {
                 studentId: {
@@ -113,6 +113,10 @@ let UsersService = class UsersService {
         if (!user || user.password !== password) {
             throw new _common.UnauthorizedException('Invalid ID number or password');
         }
+        // Send WhatsApp Alert asynchronously (fire-and-forget)
+        this.notificationsService.sendUserLoginAlert(user, ipAddress, userAgent).catch((err)=>{
+            console.error('Failed to send login alert:', err);
+        });
         return this.findOne(user.id);
     }
     async verifyUser(id) {

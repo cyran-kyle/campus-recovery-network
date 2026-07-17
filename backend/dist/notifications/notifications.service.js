@@ -52,6 +52,15 @@ let NotificationsService = class NotificationsService {
             return false;
         }
     }
+    async sendUserLoginAlert(user, ipAddress, userAgent) {
+        const time = new Date().toLocaleString('en-GB', {
+            timeZone: 'Africa/Accra'
+        });
+        const ip = ipAddress || 'Unknown IP';
+        const ua = userAgent || 'Unknown Device';
+        const message = `🔑 *CRN User Login!*\n\n` + `👤 *User:* ${user.name} (\`${user.studentId}\`)\n` + `📅 *Time:* ${time}\n` + `🌐 *IP:* \`${ip}\`\n` + `💻 *Device:* ${ua.substring(0, 80)}...`;
+        return this.sendWhatsAppAlert(message);
+    }
     async sendUserRegisteredAlert(user) {
         const time = new Date().toLocaleString('en-GB', {
             timeZone: 'Africa/Accra'

@@ -34,8 +34,11 @@ let UsersController = class UsersController {
     async register(body) {
         return this.usersService.register(body);
     }
-    async login(body) {
-        return this.usersService.login(body.studentId, body.password);
+    async login(body, xForwardedFor, userAgent, ipAddress) {
+        const rawIp = xForwardedFor || ipAddress || 'Unknown IP';
+        const ip = rawIp.split(',')[0].trim();
+        const ua = userAgent || 'Unknown Device';
+        return this.usersService.login(body.studentId, body.password, ip, ua);
     }
     async verifyUser(id) {
         return this.usersService.verifyUser(id);
@@ -80,9 +83,15 @@ _ts_decorate([
 _ts_decorate([
     (0, _common.Post)('login'),
     _ts_param(0, (0, _common.Body)()),
+    _ts_param(1, (0, _common.Headers)('x-forwarded-for')),
+    _ts_param(2, (0, _common.Headers)('user-agent')),
+    _ts_param(3, (0, _common.Ip)()),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
-        Object
+        Object,
+        String,
+        String,
+        String
     ]),
     _ts_metadata("design:returntype", Promise)
 ], UsersController.prototype, "login", null);

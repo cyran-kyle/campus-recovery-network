@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Headers, Ip } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -21,8 +21,16 @@ export class UsersController {
   }
 
   @Post('login')
-  async login(@Body() body: { studentId: string; password: any }) {
-    return this.usersService.login(body.studentId, body.password);
+  async login(
+    @Body() body: { studentId: string; password: any },
+    @Headers('x-forwarded-for') xForwardedFor?: string,
+    @Headers('user-agent') userAgent?: string,
+    @Ip() ipAddress?: string,
+  ) {
+    const rawIp = xForwardedFor || ipAddress || 'Unknown IP';
+    const ip = rawIp.split(',')[0].trim();
+    const ua = userAgent || 'Unknown Device';
+    return this.usersService.login(body.studentId, body.password, ip, ua);
   }
 
   @Post(':id/verify')
