@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 Object.defineProperty(exports, "AppController", {
     enumerable: true,
-    get: function() {
+    get: function () {
         return AppController;
     }
 });
@@ -14,14 +14,14 @@ const _notificationsservice = require("./notifications/notifications.service");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for (var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 function _ts_metadata(k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 }
 function _ts_param(paramIndex, decorator) {
-    return function(target, key) {
+    return function (target, key) {
         decorator(target, key, paramIndex);
     };
 }
@@ -36,7 +36,7 @@ let AppController = class AppController {
         const visitTime = new Date().toLocaleString('en-GB', {
             timeZone: 'Africa/Accra'
         });
-        const message = `🔔 *New CRN Website Visit!*\n\n` + `📅 *Time:* ${visitTime}\n` + `🌐 *IP:* \`${ip}\`\n` + `💻 *Device:* ${ua.substring(0, 80)}...`;
+        const message = `🔔 *New CAMPUS RECOVERY NETWORK Website Visit!*\n\n` + `📅 *Time:* ${visitTime}\n` + `🌐 *IP:* \`${ip}\`\n` + `💻 *Device:* ${ua.substring(0, 80)}...`;
         const success = await this.notificationsService.sendWhatsAppAlert(message);
         if (!success) {
             return {
@@ -49,7 +49,7 @@ let AppController = class AppController {
             message: 'Visit logged successfully.'
         };
     }
-    constructor(appService, notificationsService){
+    constructor(appService, notificationsService) {
         this.appService = appService;
         this.notificationsService = notificationsService;
     }

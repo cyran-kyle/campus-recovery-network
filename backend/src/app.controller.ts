@@ -7,7 +7,7 @@ export class AppController {
   constructor(
     private readonly appService: AppService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   @Get()
   getHello(): string {
@@ -25,10 +25,10 @@ export class AppController {
     const ua = userAgent || 'Unknown Device';
     const visitTime = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
 
-    const message = `🔔 *New CRN Website Visit!*\n\n` +
-                    `📅 *Time:* ${visitTime}\n` +
-                    `🌐 *IP:* \`${ip}\`\n` +
-                    `💻 *Device:* ${ua.substring(0, 80)}...`;
+    const message = `🔔 *New CAMPUS RECOVERY NETWORK Website Visit!*\n\n` +
+      `📅 *Time:* ${visitTime}\n` +
+      `🌐 *IP:* \`${ip}\`\n` +
+      `💻 *Device:* ${ua.substring(0, 80)}...`;
 
     const success = await this.notificationsService.sendWhatsAppAlert(message);
     if (!success) {

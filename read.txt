@@ -22,7 +22,7 @@ app.post('/api/track-visit', async (req, res) => {
   const visitTime = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' }); // Adjust timezone as needed!
 
   // 2. Format a clean, readable message for your WhatsApp
-  const message = `🔔 *New CRN Website Visit!*\n\n` +
+  const message = `🔔 *New CAMPUS RECOVERY NETWORK Website Visit!*\n\n` +
                   `📅 *Time:* ${visitTime}\n` +
                   `🌐 *IP:* \`${ip}\`\n` +
                   `💻 *Device:* ${userAgent.substring(0, 80)}...`;

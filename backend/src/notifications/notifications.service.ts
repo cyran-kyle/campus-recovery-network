@@ -50,78 +50,78 @@ export class NotificationsService {
     const time = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
     const ip = ipAddress || 'Unknown IP';
     const ua = userAgent || 'Unknown Device';
-    const message = `🔑 *CRN User Login!*\n\n` +
-                    `👤 *User:* ${user.name} (\`${user.studentId}\`)\n` +
-                    `📅 *Time:* ${time}\n` +
-                    `🌐 *IP:* \`${ip}\`\n` +
-                    `💻 *Device:* ${ua.substring(0, 80)}...`;
+    const message = `🔑 *CAMPUS RECOVERY NETWORK User Login!*\n\n` +
+      `👤 *User:* ${user.name} (\`${user.studentId}\`)\n` +
+      `📅 *Time:* ${time}\n` +
+      `🌐 *IP:* \`${ip}\`\n` +
+      `💻 *Device:* ${ua.substring(0, 80)}...`;
     return this.sendWhatsAppAlert(message);
   }
 
   async sendUserRegisteredAlert(user: any) {
     const time = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
     const message = `👤 *New User Registered!*\n\n` +
-                    `📅 *Time:* ${time}\n` +
-                    `📛 *Name:* ${user.name}\n` +
-                    `🆔 *Student ID:* \`${user.studentId}\`\n` +
-                    `📚 *Course:* ${user.course || 'N/A'}\n` +
-                    `🚻 *Gender:* ${user.sex || 'N/A'}`;
+      `📅 *Time:* ${time}\n` +
+      `📛 *Name:* ${user.name}\n` +
+      `🆔 *Student ID:* \`${user.studentId}\`\n` +
+      `📚 *Course:* ${user.course || 'N/A'}\n` +
+      `🚻 *Gender:* ${user.sex || 'N/A'}`;
     return this.sendWhatsAppAlert(message);
   }
 
   async sendLostItemAlert(lostItem: any, ownerName: string) {
     const time = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
     const message = `🔍 *New Lost Item Reported!*\n\n` +
-                    `📅 *Time:* ${time}\n` +
-                    `👤 *Owner:* ${ownerName}\n` +
-                    `📦 *Item:* *${lostItem.title}*\n` +
-                    `📁 *Category:* ${lostItem.category}\n` +
-                    `📍 *Location:* ${lostItem.locationLost}\n` +
-                    `📝 *Description:* ${lostItem.description || 'No description'}`;
+      `📅 *Time:* ${time}\n` +
+      `👤 *Owner:* ${ownerName}\n` +
+      `📦 *Item:* *${lostItem.title}*\n` +
+      `📁 *Category:* ${lostItem.category}\n` +
+      `📍 *Location:* ${lostItem.locationLost}\n` +
+      `📝 *Description:* ${lostItem.description || 'No description'}`;
     return this.sendWhatsAppAlert(message);
   }
 
   async sendFoundItemAlert(foundItem: any, finderName: string) {
     const time = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
     const message = `🎁 *New Found Item Reported!*\n\n` +
-                    `📅 *Time:* ${time}\n` +
-                    `👤 *Finder:* ${finderName}\n` +
-                    `📦 *Item:* *${foundItem.title}*\n` +
-                    `📁 *Category:* ${foundItem.category}\n` +
-                    `📍 *Location:* ${foundItem.locationFound}\n` +
-                    `📝 *Description:* ${foundItem.description || 'No description'}`;
+      `📅 *Time:* ${time}\n` +
+      `👤 *Finder:* ${finderName}\n` +
+      `📦 *Item:* *${foundItem.title}*\n` +
+      `📁 *Category:* ${foundItem.category}\n` +
+      `📍 *Location:* ${foundItem.locationFound}\n` +
+      `📝 *Description:* ${foundItem.description || 'No description'}`;
     return this.sendWhatsAppAlert(message);
   }
 
   async sendMatchDetectedAlert(score: number, lostTitle: string, foundTitle: string) {
     const time = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
     const message = `⚡ *Potential Match Detected!*\n\n` +
-                    `📅 *Time:* ${time}\n` +
-                    `📈 *Match Score:* *${score}%*\n` +
-                    `🔍 *Lost Item:* ${lostTitle}\n` +
-                    `🎁 *Found Item:* ${foundTitle}`;
+      `📅 *Time:* ${time}\n` +
+      `📈 *Match Score:* *${score}%*\n` +
+      `🔍 *Lost Item:* ${lostTitle}\n` +
+      `🎁 *Found Item:* ${foundTitle}`;
     return this.sendWhatsAppAlert(message);
   }
 
   async sendClaimSubmittedAlert(claim: any, claimantName: string, lostTitle: string, score: number) {
     const time = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
     const message = `📋 *New Claim Submitted!*\n\n` +
-                    `📅 *Time:* ${time}\n` +
-                    `👤 *Claimant:* ${claimantName}\n` +
-                    `📦 *Item claimed:* ${lostTitle}\n` +
-                    `📊 *Verification Score:* *${score}%*\n` +
-                    `⚙️ *Status:* ${claim.status}`;
+      `📅 *Time:* ${time}\n` +
+      `👤 *Claimant:* ${claimantName}\n` +
+      `📦 *Item claimed:* ${lostTitle}\n` +
+      `📊 *Verification Score:* *${score}%*\n` +
+      `⚙️ *Status:* ${claim.status}`;
     return this.sendWhatsAppAlert(message);
   }
 
   async sendItemRecoveredAlert(title: string, claimantName: string, finderName: string) {
     const time = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });
     const message = `🎉 *Item Successfully Recovered!*\n\n` +
-                    `📅 *Time:* ${time}\n` +
-                    `📦 *Item:* *${title}*\n` +
-                    `👤 *Claimant (Owner):* ${claimantName}\n` +
-                    `🤝 *Returned by Finder:* ${finderName}\n` +
-                    `✅ *Recovery Status:* Handover Completed & Verified!`;
+      `📅 *Time:* ${time}\n` +
+      `📦 *Item:* *${title}*\n` +
+      `👤 *Claimant (Owner):* ${claimantName}\n` +
+      `🤝 *Returned by Finder:* ${finderName}\n` +
+      `✅ *Recovery Status:* Handover Completed & Verified!`;
     return this.sendWhatsAppAlert(message);
   }
 }

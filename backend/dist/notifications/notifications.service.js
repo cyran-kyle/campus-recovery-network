@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 Object.defineProperty(exports, "NotificationsService", {
     enumerable: true,
-    get: function() {
+    get: function () {
         return NotificationsService;
     }
 });
@@ -12,7 +12,7 @@ const _common = require("@nestjs/common");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for(var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    else for (var i = decorators.length - 1; i >= 0; i--)if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
 let NotificationsService = class NotificationsService {
@@ -58,7 +58,7 @@ let NotificationsService = class NotificationsService {
         });
         const ip = ipAddress || 'Unknown IP';
         const ua = userAgent || 'Unknown Device';
-        const message = `🔑 *CRN User Login!*\n\n` + `👤 *User:* ${user.name} (\`${user.studentId}\`)\n` + `📅 *Time:* ${time}\n` + `🌐 *IP:* \`${ip}\`\n` + `💻 *Device:* ${ua.substring(0, 80)}...`;
+        const message = `🔑 *CAMPUS RECOVERY NETWORK User Login!*\n\n` + `👤 *User:* ${user.name} (\`${user.studentId}\`)\n` + `📅 *Time:* ${time}\n` + `🌐 *IP:* \`${ip}\`\n` + `💻 *Device:* ${ua.substring(0, 80)}...`;
         return this.sendWhatsAppAlert(message);
     }
     async sendUserRegisteredAlert(user) {
@@ -103,7 +103,7 @@ let NotificationsService = class NotificationsService {
         const message = `🎉 *Item Successfully Recovered!*\n\n` + `📅 *Time:* ${time}\n` + `📦 *Item:* *${title}*\n` + `👤 *Claimant (Owner):* ${claimantName}\n` + `🤝 *Returned by Finder:* ${finderName}\n` + `✅ *Recovery Status:* Handover Completed & Verified!`;
         return this.sendWhatsAppAlert(message);
     }
-    constructor(){
+    constructor() {
         this.logger = new _common.Logger(NotificationsService.name);
     }
 };

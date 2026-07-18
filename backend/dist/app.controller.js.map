@@ -1,1 +1,34 @@
-{"version":3,"sources":["../src/app.controller.ts"],"sourcesContent":["import { Controller, Get, Post, Headers, Ip } from '@nestjs/common';\r\nimport { AppService } from './app.service';\r\nimport { NotificationsService } from './notifications/notifications.service';\r\n\r\n@Controller()\r\nexport class AppController {\r\n  constructor(\r\n    private readonly appService: AppService,\r\n    private readonly notificationsService: NotificationsService,\r\n  ) {}\r\n\r\n  @Get()\r\n  getHello(): string {\r\n    return this.appService.getHello();\r\n  }\r\n\r\n  @Post('api/track-visit')\r\n  async trackVisit(\r\n    @Headers('x-forwarded-for') xForwardedFor?: string,\r\n    @Headers('user-agent') userAgent?: string,\r\n    @Ip() ipAddress?: string,\r\n  ) {\r\n    const rawIp = xForwardedFor || ipAddress || 'Unknown IP';\r\n    const ip = rawIp.split(',')[0].trim();\r\n    const ua = userAgent || 'Unknown Device';\r\n    const visitTime = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });\r\n\r\n    const message = `🔔 *New CRN Website Visit!*\\n\\n` +\r\n                    `📅 *Time:* ${visitTime}\\n` +\r\n                    `🌐 *IP:* \\`${ip}\\`\\n` +\r\n                    `💻 *Device:* ${ua.substring(0, 80)}...`;\r\n\r\n    const success = await this.notificationsService.sendWhatsAppAlert(message);\r\n    if (!success) {\r\n      return { success: false, error: 'Failed to process tracker' };\r\n    }\r\n    return { success: true, message: 'Visit logged successfully.' };\r\n  }\r\n}\r\n\r\n\r\n"],"names":["AppController","getHello","appService","trackVisit","xForwardedFor","userAgent","ipAddress","rawIp","ip","split","trim","ua","visitTime","Date","toLocaleString","timeZone","message","substring","success","notificationsService","sendWhatsAppAlert","error"],"mappings":";;;;+BAKaA;;;eAAAA;;;wBALsC;4BACxB;sCACU;;;;;;;;;;;;;;;AAG9B,IAAA,AAAMA,gBAAN,MAAMA;IAOXC,WAAmB;QACjB,OAAO,IAAI,CAACC,UAAU,CAACD,QAAQ;IACjC;IAEA,MACME,WACJ,AAA4BC,aAAsB,EAClD,AAAuBC,SAAkB,EACzC,AAAMC,SAAkB,EACxB;QACA,MAAMC,QAAQH,iBAAiBE,aAAa;QAC5C,MAAME,KAAKD,MAAME,KAAK,CAAC,IAAI,CAAC,EAAE,CAACC,IAAI;QACnC,MAAMC,KAAKN,aAAa;QACxB,MAAMO,YAAY,IAAIC,OAAOC,cAAc,CAAC,SAAS;YAAEC,UAAU;QAAe;QAEhF,MAAMC,UAAU,CAAC,+BAA+B,CAAC,GACjC,CAAC,WAAW,EAAEJ,UAAU,EAAE,CAAC,GAC3B,CAAC,WAAW,EAAEJ,GAAG,IAAI,CAAC,GACtB,CAAC,aAAa,EAAEG,GAAGM,SAAS,CAAC,GAAG,IAAI,GAAG,CAAC;QAExD,MAAMC,UAAU,MAAM,IAAI,CAACC,oBAAoB,CAACC,iBAAiB,CAACJ;QAClE,IAAI,CAACE,SAAS;YACZ,OAAO;gBAAEA,SAAS;gBAAOG,OAAO;YAA4B;QAC9D;QACA,OAAO;YAAEH,SAAS;YAAMF,SAAS;QAA6B;IAChE;IA/BA,YACE,AAAiBd,UAAsB,EACvC,AAAiBiB,oBAA0C,CAC3D;aAFiBjB,aAAAA;aACAiB,uBAAAA;IAChB;AA6BL"}
+{
+    "version": 3,
+    "sources": [
+        "../src/app.controller.ts"
+    ],
+    "sourcesContent": [
+        "import { Controller, Get, Post, Headers, Ip } from '@nestjs/common';\r\nimport { AppService } from './app.service';\r\nimport { NotificationsService } from './notifications/notifications.service';\r\n\r\n@Controller()\r\nexport class AppController {\r\n  constructor(\r\n    private readonly appService: AppService,\r\n    private readonly notificationsService: NotificationsService,\r\n  ) {}\r\n\r\n  @Get()\r\n  getHello(): string {\r\n    return this.appService.getHello();\r\n  }\r\n\r\n  @Post('api/track-visit')\r\n  async trackVisit(\r\n    @Headers('x-forwarded-for') xForwardedFor?: string,\r\n    @Headers('user-agent') userAgent?: string,\r\n    @Ip() ipAddress?: string,\r\n  ) {\r\n    const rawIp = xForwardedFor || ipAddress || 'Unknown IP';\r\n    const ip = rawIp.split(',')[0].trim();\r\n    const ua = userAgent || 'Unknown Device';\r\n    const visitTime = new Date().toLocaleString('en-GB', { timeZone: 'Africa/Accra' });\r\n\r\n    const message = `🔔 *New CAMPUS RECOVERY NETWORK Website Visit!*\\n\\n` +\r\n                    `📅 *Time:* ${visitTime}\\n` +\r\n                    `🌐 *IP:* \\`${ip}\\`\\n` +\r\n                    `💻 *Device:* ${ua.substring(0, 80)}...`;\r\n\r\n    const success = await this.notificationsService.sendWhatsAppAlert(message);\r\n    if (!success) {\r\n      return { success: false, error: 'Failed to process tracker' };\r\n    }\r\n    return { success: true, message: 'Visit logged successfully.' };\r\n  }\r\n}\r\n\r\n\r\n"
+    ],
+    "names": [
+        "AppController",
+        "getHello",
+        "appService",
+        "trackVisit",
+        "xForwardedFor",
+        "userAgent",
+        "ipAddress",
+        "rawIp",
+        "ip",
+        "split",
+        "trim",
+        "ua",
+        "visitTime",
+        "Date",
+        "toLocaleString",
+        "timeZone",
+        "message",
+        "substring",
+        "success",
+        "notificationsService",
+        "sendWhatsAppAlert",
+        "error"
+    ],
+    "mappings": ";;;;+BAKaA;;;eAAAA;;;wBALsC;4BACxB;sCACU;;;;;;;;;;;;;;;AAG9B,IAAA,AAAMA,gBAAN,MAAMA;IAOXC,WAAmB;QACjB,OAAO,IAAI,CAACC,UAAU,CAACD,QAAQ;IACjC;IAEA,MACME,WACJ,AAA4BC,aAAsB,EAClD,AAAuBC,SAAkB,EACzC,AAAMC,SAAkB,EACxB;QACA,MAAMC,QAAQH,iBAAiBE,aAAa;QAC5C,MAAME,KAAKD,MAAME,KAAK,CAAC,IAAI,CAAC,EAAE,CAACC,IAAI;QACnC,MAAMC,KAAKN,aAAa;QACxB,MAAMO,YAAY,IAAIC,OAAOC,cAAc,CAAC,SAAS;YAAEC,UAAU;QAAe;QAEhF,MAAMC,UAAU,CAAC,+BAA+B,CAAC,GACjC,CAAC,WAAW,EAAEJ,UAAU,EAAE,CAAC,GAC3B,CAAC,WAAW,EAAEJ,GAAG,IAAI,CAAC,GACtB,CAAC,aAAa,EAAEG,GAAGM,SAAS,CAAC,GAAG,IAAI,GAAG,CAAC;QAExD,MAAMC,UAAU,MAAM,IAAI,CAACC,oBAAoB,CAACC,iBAAiB,CAACJ;QAClE,IAAI,CAACE,SAAS;YACZ,OAAO;gBAAEA,SAAS;gBAAOG,OAAO;YAA4B;QAC9D;QACA,OAAO;YAAEH,SAAS;YAAMF,SAAS;QAA6B;IAChE;IA/BA,YACE,AAAiBd,UAAsB,EACvC,AAAiBiB,oBAA0C,CAC3D;aAFiBjB,aAAAA;aACAiB,uBAAAA;IAChB;AA6BL"
+}
